@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: admin_workbench_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: admin_workbench
+    ports:
+      - "5432:5432"
+    volumes:
+      - admin_workbench_pgdata:/var/lib/postgresql/data
+
+volumes:
+  admin_workbench_pgdata:

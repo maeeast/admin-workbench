@@ -1,6 +1,10 @@
 # Admin Workbench
 
-A production-like admin dashboard that demonstrates senior-level UI architecture and API design: server-side pagination/filtering/sorting, accessible interactions, strong loading/empty/error states, tests, and CI. Built with Next.js, TypeScript, Postgres, Prisma, TanStack Table, and Zod.
+A production-like admin dashboard that demonstrates senior-level UI architecture and API design: server-side pagination/filtering/sorting, accessible interactions, strong loading/empty/error states, tests, and CI.
+
+Built with **Next.js**, **TypeScript**, **Postgres**, **Prisma**, **TanStack Table**, and **Zod**.
+
+---
 
 ## Demo
 
@@ -25,22 +29,26 @@ A production-like admin dashboard that demonstrates senior-level UI architecture
 ## Features
 
 ### Dashboard
+
 - KPI cards (7/30 day views)
 - Charts: events over time, errors by type
 - Global filters (date range, environment) persisted in the URL
 
 ### Events Explorer
+
 - Server-side pagination (`page`, `pageSize`)
 - Server-side filtering (status/type/source/date range/search)
 - Server-side sorting (`sort=occurredAt:desc`)
 - Row details drawer with JSON payload viewer + copy
 
 ### Users & Roles (demo-grade RBAC)
+
 - Roles: `admin`, `analyst`, `viewer`
 - Admin can create/deactivate users and manage roles
 - Audit log records admin actions
 
 ### Audit Log
+
 - Paginated + filterable log of admin actions
 - Useful for demonstrating “operational thinking”
 
@@ -78,7 +86,9 @@ graph LR
 - **URL-driven state**: filters and table state are encoded in query params for shareable links.
 - **Consistent API shape** for list endpoints:
   ```ts
-  { data, page, pageSize, total, totalPages }
+  {
+    (data, page, pageSize, total, totalPages);
+  }
   ```
 - **Demo auth with RBAC**: minimal implementation that still enforces roles server-side.
 
@@ -94,13 +104,22 @@ See: `prisma/schema.prisma`
 
 ---
 
-## Local development
+## Getting Started
+
+This is a [Next.js](https://nextjs.org) project bootstrapped with
+[`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ### Prerequisites
-- Node 18+ (or 20+ recommended)
-- Docker Desktop
+
+- Node 18+ (20+ recommended)
+- Docker Desktop (for local Postgres)
+
+---
+
+## Local development
 
 ### 1) Clone + install
+
 ```bash
 git clone https://github.com/<your-handle>/admin-workbench.git
 cd admin-workbench
@@ -108,29 +127,42 @@ npm install
 ```
 
 ### 2) Start local Postgres
+
 ```bash
 docker compose up -d
 ```
 
 ### 3) Configure environment
+
 Create `.env.local` (use `.env.example` as a starting point):
+
 ```bash
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/admin_workbench"
 SESSION_PASSWORD="change-me-to-32+chars-min"
 ```
 
 ### 4) Run migrations + seed
+
 ```bash
 npm run db:migrate
 npm run db:seed
 ```
 
-### 5) Start the app
+### 5) Run the dev server
+
 ```bash
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-Open: http://localhost:3000
+Open http://localhost:3000
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 ---
 
@@ -158,16 +190,19 @@ npm run db:studio    # prisma studio
 ## Testing
 
 ### Unit + component tests
+
 ```bash
 npm run test
 ```
 
 ### E2E tests (Playwright)
+
 ```bash
 npm run test:e2e
 ```
 
 Suggested E2E flows:
+
 - Filter events to `status=error` → open details drawer → copy payload
 - Change date range → KPIs and charts update
 
@@ -176,6 +211,7 @@ Suggested E2E flows:
 ## Accessibility
 
 This project aims to be keyboard-usable and screen-reader friendly:
+
 - Visible focus states
 - Table controls labeled with aria attributes
 - Drawer focus trap + escape handling
@@ -188,6 +224,7 @@ Checklist: `docs/a11y-checklist.md`
 ## CI
 
 GitHub Actions runs on PR:
+
 - Lint
 - Typecheck
 - Unit tests
@@ -195,6 +232,7 @@ GitHub Actions runs on PR:
 - (Optional) E2E tests
 
 Add badge once CI is set up:
+
 ```md
 ![CI](https://github.com/<your-handle>/admin-workbench/actions/workflows/ci.yml/badge.svg)
 ```
@@ -211,6 +249,22 @@ Add badge once CI is set up:
    - `DATABASE_URL`
    - `SESSION_PASSWORD`
 4. Deploy.
+
+---
+
+## Learn More (Next.js)
+
+To learn more about Next.js, take a look at:
+
+- [Next.js Documentation](https://nextjs.org/docs) - features and API
+- [Learn Next.js](https://nextjs.org/learn) - interactive tutorial
+- [Next.js GitHub repository](https://github.com/vercel/next.js) - feedback and contributions welcome
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font).
+
+You can also review Next.js deployment guidance here:
+
+- [Deploying Next.js apps](https://nextjs.org/docs/app/building-your-application/deploying)
 
 ---
 
