@@ -65,11 +65,11 @@ A production-like admin dashboard that demonstrates senior-level UI architecture
 ## Architecture
 
 ```mermaid
-flowchart LR
-  U[Browser] -->|HTTPS| N[Next.js App (Vercel)]
-  N -->|Route Handlers| API[API Routes]
-  API --> DB[(Postgres: Neon / Local Docker)]
-  N --> UI[UI Components]
+graph LR
+  U[Browser] --> N[Nextjs app]
+  N --> A[Route handlers]
+  A --> D[Postgres]
+  N --> C[React UI]
 ```
 
 ### Key design decisions
