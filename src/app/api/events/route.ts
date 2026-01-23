@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 
+export const runtime = "nodejs"
+
 const SortField = z.enum(["occurredAt", "createdAt", "durationMs", "type", "source", "status"]);
 const SortDir = z.enum(["asc", "desc"]);
 
