@@ -52,7 +52,7 @@ type EventRow = {
 
 type ListResponse<T> = {
   data: T[];
-  page: number; // 1-based
+  page: number;
   pageSize: number;
   total: number;
   totalPages: number;
@@ -98,9 +98,13 @@ export default function EventsTable() {
   const searchParams = useSearchParams();
 
   // ---- URL state (single source of truth) ----
-  const page = Math.max(1, safeInt(searchParams.get("page"), 1));
-  const pageSize = Math.min(100, Math.max(1, safeInt(searchParams.get("pageSize"), 25)));
+  const allowedPageSizes = new Set([10, 25, 50, 100]);
 
+  const page = Math.max(1, safeInt(searchParams.get("page"), 1));
+
+  const pageSizeRaw = safeInt(searchParams.get("pageSize"), 25);
+  const pageSize = allowedPageSizes.has(pageSizeRaw) ? pageSizeRaw : 25;
+    
   const status = (searchParams.get("status") as EventStatus | null) ?? undefined;
   const environment = (searchParams.get("environment") as Environment | null) ?? undefined;
   const q = searchParams.get("q") ?? "";
@@ -271,8 +275,8 @@ export default function EventsTable() {
   return (
     <Card className="p-4">
       {/* Toolbar */}
-      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div className="flex flex-col gap-3 md:flex-row md:items-end">
+      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-end">
           <div className="w-full md:w-72">
             <label className="mb-1 block text-xs font-medium text-muted-foreground">Search</label>
             <Input
@@ -338,7 +342,7 @@ export default function EventsTable() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-3 md:justify-end">
+        <div className="flex w-full items-center justify-between gap-3 lg:w-auto lg:justify-end">
           <div className="text-sm text-muted-foreground">
             {loading ? "Loading…" : `${total.toLocaleString()} total`}
           </div>
@@ -401,6 +405,13 @@ export default function EventsTable() {
         </div>
       )}
 
+      {/* Table Instructions */}
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+            Click a row (or press Enter) to view event details.
+        </p>
+      </div>
+
       {/* Table */}
       <div className="rounded border">
         <Table>
@@ -456,14 +467,16 @@ export default function EventsTable() {
             ) : (
               table.getRowModel().rows.map((r) => (
                 <TableRow
-                  key={r.id}
-                  className="cursor-pointer"
-                  onClick={() => openDetails(r.original)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
+                    key={r.id}
+                className="cursor-pointer transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                onClick={() => openDetails(r.original)}
+                role="button"
+                tabIndex={0}
+                aria-haspopup="dialog"
+                title="Click to view details"
+                onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") openDetails(r.original);
-                  }}
+                }}
                   aria-label={`Open details for event ${r.original.id}`}
                 >
                   {r.getVisibleCells().map((c) => (
