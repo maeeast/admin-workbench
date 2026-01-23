@@ -12,3 +12,80 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum RoleName {
+  admin
+  analyst
+  viewer
+}
+
+enum Environment {
+  dev
+  staging
+  prod
+}
+
+enum EventStatus {
+  ok
+  error
+}
+
+model Role {
+  id        Int      @id @default(autoincrement())
+  name      RoleName @unique
+  users     UserRole[]
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id          String     @id @default(uuid()) @db.Uuid
+  email       String     @unique
+  displayName String
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+
+  roles       UserRole[]
+  auditEvents AuditLog[] @relation("ActorAudit")
+}
+
+model UserRole {
+  userId String @db.Uuid
+  roleId Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@id([userId, roleId])
+}
+
+model Event {
+  id          String      @id @default(uuid()) @db.Uuid
+  occurredAt  DateTime
+  environment Environment
+  type        String
+  status      EventStatus
+  source      String
+  durationMs  Int
+  payload     Json
+  createdAt   DateTime    @default(now())
+
+  @@index([occurredAt])
+  @@index([environment])
+  @@index([status])
+  @@index([type])
+  @@index([source])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  actorUserId String?  @db.Uuid
+  action      String
+  target      String
+  meta        Json     @default("{}")
+  createdAt   DateTime @default(now())
+
+  actor User? @relation("ActorAudit", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([action])
+}
