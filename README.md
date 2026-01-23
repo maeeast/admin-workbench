@@ -8,7 +8,7 @@ Built with **Next.js**, **TypeScript**, **Postgres**, **Prisma**, **TanStack Tab
 
 ## Demo
 
-- Live: [_https://admin-workbench-532a3lr9j-jennifer-mahers-projects.vercel.app/ ](https://admin-workbench-532a3lr9j-jennifer-mahers-projects.vercel.app/)
+- Live: [https://admin-workbench.vercel.app/](https://admin-workbench.vercel.app/)
 - Demo GIF: _TBD_
 
 ![Demo GIF](./docs/demo.gif)
