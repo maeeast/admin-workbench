@@ -1,6 +1,6 @@
 import "dotenv/config"; 
 
-import { PrismaClient, Environment, EventStatus, RoleName } from "../src/generated/prisma/client";
+import { PrismaClient, Environment, EventStatus, RoleName } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { faker } from "@faker-js/faker";
 

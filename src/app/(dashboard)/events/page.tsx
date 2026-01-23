@@ -1,4 +1,13 @@
+import { Suspense } from "react";
 import EventsTable from "@/components/tables/EventsTable";
+
+function EventsLoading() {
+  return (
+    <div className="rounded border p-6 text-sm text-muted-foreground">
+      Loading events…
+    </div>
+  );
+}
 
 export default function EventsPage() {
   return (
@@ -10,7 +19,9 @@ export default function EventsPage() {
         </p>
       </div>
 
-      <EventsTable />
+      <Suspense fallback={<EventsLoading />}>
+        <EventsTable />
+      </Suspense>
     </main>
   );
 }
