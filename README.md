@@ -9,7 +9,7 @@ Built with **Next.js**, **TypeScript**, **Postgres**, **Prisma**, **TanStack Tab
 ## Demo
 
 - Live: [https://admin-workbench.vercel.app/](https://admin-workbench.vercel.app/)
-- Demo GIF: _TBD_
+- Demo GIF:
 
 ![Demo GIF](./docs/demo.gif)
 
