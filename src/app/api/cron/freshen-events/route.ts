@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { faker } from "@faker-js/faker";
-import { Environment, EventStatus } from "@prisma/client";
-import prisma from "@/lib/db/prisma"; // adjust if your export differs
+import { Environment, EventStatus, Prisma } from "@prisma/client";
+import { prisma } from "@/lib/db/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,10 +22,14 @@ function pick<T>(arr: readonly T[]) {
 }
 
 function requireCronAuth(req: Request) {
-  // Vercel can automatically send CRON_SECRET as an Authorization header :contentReference[oaicite:3]{index=3}
   const secret = process.env.CRON_SECRET;
   if (!secret) return true; // allow local/manual runs if you haven't set it
   return req.headers.get("authorization") === `Bearer ${secret}`;
+}
+
+function utcDateKey(d: Date) {
+  // Daily idempotency key in UTC: YYYY-MM-DD
+  return d.toISOString().slice(0, 10);
 }
 
 export async function GET(req: Request) {
@@ -33,27 +37,24 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  // Idempotency key per hour (cron invocations can repeat; this prevents double-inserts) :contentReference[oaicite:4]{index=4}
   const now = new Date();
-  const hourKey = `freshen-events:${now.toISOString().slice(0, 13)}`; // YYYY-MM-DDTHH
 
-  try {
-    await prisma.cronRun.create({ data: { key: hourKey } });
-  } catch {
-    return NextResponse.json({ ok: true, skipped: true, key: hourKey });
-  }
+  // Daily cron: one key per day prevents double inserts if Vercel retries
+  const key = `freshen-events:${utcDateKey(now)}`;
 
-  const batch = Number(process.env.CRON_EVENT_BATCH ?? "120");
+  const minBatch = Number(process.env.CRON_EVENT_BATCH_MIN ?? "50");
+const maxBatch = Number(process.env.CRON_EVENT_BATCH_MAX ?? "95");
+const batch = faker.number.int({ min: minBatch, max: maxBatch });
+  const retentionDays = Number(process.env.CRON_RETENTION_DAYS ?? "90");
+  const windowHours = Number(process.env.CRON_WINDOW_HOURS ?? "24");
+
   const envs: Environment[] = [Environment.dev, Environment.staging, Environment.prod];
 
-  // Keep DB small: delete anything older than 90 days
-  const cutoff = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-  await prisma.event.deleteMany({ where: { occurredAt: { lt: cutoff } } });
+  const cutoff = new Date(now.getTime() - retentionDays * 24 * 60 * 60 * 1000);
+  const from = new Date(now.getTime() - windowHours * 60 * 60 * 1000);
 
-  // Add “fresh” events from the last ~2 hours
-  const from = new Date(now.getTime() - 2 * 60 * 60 * 1000);
-
-  const data = Array.from({ length: batch }).map(() => {
+  // Generate once (so we can insert in the transaction)
+  const data: Prisma.EventCreateManyInput[] = Array.from({ length: batch }).map(() => {
     const occurredAt = faker.date.between({ from, to: now });
     const status = faker.datatype.boolean(0.82) ? EventStatus.ok : EventStatus.error;
 
@@ -73,12 +74,37 @@ export async function GET(req: Request) {
     };
   });
 
-  await prisma.event.createMany({ data });
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // Idempotency guard
+      try {
+        await tx.cronRun.create({ data: { key } });
+      } catch {
+        return { skipped: true as const, deleted: 0, inserted: 0 };
+      }
 
-  return NextResponse.json({
-    ok: true,
-    inserted: batch,
-    deletedOlderThan: cutoff.toISOString(),
-    key: hourKey,
-  });
+      // Retention cleanup
+      const del = await tx.event.deleteMany({ where: { occurredAt: { lt: cutoff } } });
+
+      // Insert new “fresh” events
+      const ins = await tx.event.createMany({ data });
+
+      return { skipped: false as const, deleted: del.count, inserted: ins.count };
+    });
+
+    return NextResponse.json({
+      ok: true,
+      key,
+      skipped: result.skipped,
+      inserted: result.inserted,
+      deleted: result.deleted,
+      retentionDays,
+      windowHours,
+      range: { from: from.toISOString(), to: now.toISOString() },
+    });
+  } catch (e) {
+    // Keep error body readable in Vercel logs
+    const message = e instanceof Error ? e.message : "Unknown error";
+    return NextResponse.json({ ok: false, error: message, key }, { status: 500 });
+  }
 }
