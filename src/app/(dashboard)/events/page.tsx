@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import EventsTable from "@/components/tables/EventsTable";
 
+
+
 function EventsLoading() {
   return (
     <div className="rounded border p-6 text-sm text-muted-foreground">

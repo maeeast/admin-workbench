@@ -88,3 +88,8 @@ model AuditLog {
   @@index([createdAt])
   @@index([action])
 }
+
+model CronRun {
+  key   String   @id
+  ranAt DateTime @default(now())
+}

@@ -16,7 +16,8 @@
     "db:seed": "tsx prisma/seed/seed.ts",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate",
-    "vercel-build": "prisma generate && prisma migrate deploy && next build"
+    "vercel-build": "prisma generate && prisma migrate deploy && npm run db:seed && next build"
+
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.3.0",
@@ -28,6 +29,7 @@
     "@radix-ui/react-separator": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
     "@tanstack/react-table": "^8.21.3",
+    "chart.js": "^4.5.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "iron-session": "^8.0.4",
@@ -35,6 +37,7 @@
     "next": "16.1.4",
     "pg": "^8.17.2",
     "react": "19.2.3",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "19.2.3",
     "recharts": "^3.7.0",
     "tailwind-merge": "^3.4.0",
